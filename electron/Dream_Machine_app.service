@@ -1,0 +1,14 @@
+[Unit]
+Description=Dream_Machine_app
+After=syslog.target network.target
+
+[Service]
+Type=simple
+RemainAfterExit=1
+Restart=always
+User=root
+WorkingDirectory=/opt/Dream_Machine/electron
+ExecStart=/opt/Dream_Machine/electron/run.sh
+
+[Install]
+WantedBy=multi-user.target

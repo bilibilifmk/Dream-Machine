@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/zh-CN/docs/Web/HTTP/CSP -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';"> -->
+    <meta http-equiv="Content-Security-Policy" content="default-src *; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; connect-src *; img-src *; font-src *;">
+    <link rel="stylesheet" href="./index/index.css">
+    <link rel="stylesheet" href="./index/style.css">
+    <link rel="stylesheet" href="./index/fan.css">
+    <link rel="stylesheet" href="./index/io.css">
+    <link rel="stylesheet" href="./index/network_status.css">
+    <link rel="stylesheet" href="./index/env_info.css">
+    <link rel="stylesheet" href="./index/server.css">
+    <style>a{text-decoration:none}</style>
+    <title>你好!</title>
+  </head>
+  <body>
+    <div class="dp_all">
+      <div class="menu"> 
+        <div class="menuToggle">
+
+          <div class="icon">
+            <div class="imgBx">
+              <img src="./index/img/keai.jpg?v=2" >
+            </div>
+          </div>
+        </div>
+        <div class="sidebar">
+          <ul>
+            <li class="logo">
+              <li >
+                <a href="#">
+                  <div class="icon">
+                    <div class="imgBx">
+                      <!-- <img src="./index/icon/server_logo.png" alt="user"> -->
+                    </div>
+                  </div>
+                  <div class="text">机柜控制器</div>
+                </a>
+              </li>
+            </li>
+            <div class="menu-list">
+              <li  class="active">
+                <a href="#">
+
+                  <div class="icon">
+                    <div class="imgBx_img">
+                      <img src="./index/icon/information.png" style="width:100%;">
+                    </div>
+                  </div>
+
+                  <div class="text">信息</div>
+                </a>
+              </li>
+      
+              <li >
+                <a href="#">
+                  <div class="icon">
+                    <div class="imgBx_img">
+                      <img src="./index/icon/server.png" style="width:100%;">
+                    </div>
+                  </div>
+                  <div class="text">服务</div>
+                </a>
+              </li>
+      
+              <li >
+                <a href="#">
+                  <div class="icon">
+                    <div class="imgBx_img">
+                      <img src="./index/icon/setting.png" style="width:100%;" >
+                    </div>
+                  </div>
+                  <div class="text">设置</div>
+                </a>
+              </li>
+      
+         
+            </div>
+            <div class="bottom">
+              <li  onclick="lockFunction_all()">
+                <a  href="javascript:void(0);" >
+                  <div class="icon">
+                    <div class="imgBx_img">
+                      <img src="./index/icon/locking.png"  style="width:100%;" alt="user">
+                    </div>
+                  </div>
+                  <div class="text">锁定</div>
+                </a>
+              </li>
+      
+              <li >
+                <a href="#">
+                  <div class="icon"></div>
+                </a>
+              </li>
+      
+            </div>
+          </ul>
+        
+        </div>
+      </div>
+      <div class="main_dp">
+
+      
+        <div id="info" class="display_block">
+         <div class="parent-container">
+
+          <div class="info_container">
+            <!-- 电源状态 -->
+            <div class="info_grid-item">
+              <div id="Power_info" style="height: 90%; width: 90%;"></div>
+            </div>
+            <!-- 网络状态 -->
+            <div class="info_grid-item" id="net-module">
+              <div id="fault-badge-net" class="fault-badge"></div>
+              <div style="height: 9%;"></div>
+              <div class="network_status-grid-container">
+                <div> <a style="color: #f3e4e4;" href="#">网卡状态 </a></div>
+                <div> <a id="Network_card_status" style="color: aliceblue;" href="#">link </a></div>
+                <div> <a style="color: #f07365;" href="#"></a></div>
+
+                <div> <a style="color: #f3e4e4;" href="#">网关状态 </a></div>
+                <div> <a id="Network_gateway" style="color: aliceblue;" href="#">online </a></div>
+                <div> <a style="color: #f07365;" href="#"></a></div>
+                
+                <div> <a style="color: #f3e4e4;" href="#">外网状态 </a></div>
+                <div> <a id="Network_WAN" style="color: aliceblue;" href="#">online </a></div>
+                <div> <a style="color: #f07365;" href="#"></a></div>
+
+                <div> <a style="color: #f3e4e4;" href="#">反向代理 </a></div>
+                <div> <a id="Network_Reverse_proxy" style="color: aliceblue;" href="#">online </a></div>
+                <div> <a style="color: #f07365;" href="#"></a></div>
+
+                <div> <a style="color: #f3e4e4;" href="#">科学网络 </a></div>
+                <div> <a id="Network_God_use_VPN" style="color: #747474;" href="#">break </a></div>
+                <div> <a style="color: #f07365;" href="#"></a></div>
+       
+              </div>
+              <div style="height: 7%;"></div>
+              <h1 style="color: aliceblue;font-size: 22px;" >网络状态</h1>
+            </div>
+            <!-- 环境信息 -->
+            <div class="info_grid-item" id="env-module">
+              <div id="fault-badge-env" class="fault-badge"></div>
+              <div style="height: 9%;"></div>
+              <div class="env_info-grid-container">
+                <div> <a style="color: #f3e4e4;" href="#">机柜照明灯光 </a></div>
+                <div> <a id="env_light_status" style="color: #b0eec1;" href="#">ON </a></div>
+      
+
+                <div> <a style="color: #f3e4e4;" href="#">空气滤网寿命 </a></div>
+                <div> <a id="env_Remaining_filter_element" style="color: #b0eec1;" href="#">100% </a></div>
+         
+                
+                <div> <a style="color: #f3e4e4;" href="#">机柜环境温度 </a></div>
+                <div> <a id="env_Temperature" style="color: aliceblue;" href="#">25°C </a></div>
+          
+
+                <div> <a style="color: #f3e4e4;" href="#">机柜环境湿度 </a></div>
+                <div> <a id="env_Humidity" style="color: aliceblue;" href="#">40% </a></div>
+
+                <div> <a style="color: #f3e4e4;" href="#">UPS在线电源 </a></div>
+                <div> <a id="env_UPS_STATE" style="color: aliceblue;" href="#">online </a></div>
+              </div>
+              <div style="height: 7%;"></div>
+              <h1 style="color: aliceblue;font-size: 22px;" >环境状态</h1>
+
+            </div>
+            <!-- 风扇状态 -->
+            <div class="info_grid-item">
+              <div class="fan-container">
+                <div class="fan">
+                    <div class="fan-blade"></div>
+                    <div class="fan-blade"></div>
+                    <div class="fan-blade"></div>
+                </div>
+                <div class="fan-center"></div>
+              
+            </div>
+            <div class="fan-grid-container">
+              <div> <a id="fan_speed0" style="color: aliceblue;" href="#">700 </a> <a  style="color: #f5aba0;" href="#">RPM </a></div>
+              <div> <a id="fan_speed1" style="color: aliceblue;" href="#">1000 </a> <a  style="color: #f5aba0;"href="#">RPM </a></div>
+              <div> <a id="fan_speed2" style="color: aliceblue;" href="#">1000 </a> <a  style="color: #f5aba0;"href="#">RPM </a></div>
+              <div> <a id="fan_speed3" style="color: aliceblue;" href="#">1000 </a> <a  style="color: #f5aba0;"href="#">RPM </a></div>
+            
+            </div>
+            <h1 style="color: aliceblue; font-size: 22px;" >风扇状态</h1>
+            </div>
+            <!-- io状态 -->
+            <div class="info_grid-item">
+              <div style="height: 20%;"></div>
+                <div class="io-grid-container">
+                  <div><a id="io_status0" style="color: #f3e4e4;;" href="#">通道0</a> <a style="color: #747474;" href="#">OFF </a></div>
+                  <div><a id="io_status1" style="color: #f3e4e4;;" href="#">通道1</a> <a style="color: #747474;" href="#">OFF </a></div>
+                  <div><a id="io_status2" style="color: #f3e4e4;;" href="#">通道2</a> <a style="color: #747474;" href="#">OFF </a></div>
+                  <div><a id="io_status3" style="color: #f3e4e4;" href="#">通道3</a> <a style="color: aliceblue;" href="#">ON </a></div>
+                  <div><a id="io_status4" style="color: #f3e4e4;;" href="#">通道4</a> <a style="color: #747474;" href="#">OFF </a></div>
+                  <div><a id="io_status5" style="color: #f3e4e4;;" href="#">通道5</a> <a style="color: #747474;" href="#">OFF </a></div>
+                  <div><a id="io_status6" style="color: #f3e4e4;;" href="#">通道6</a> <a style="color: #747474;" href="#">OFF </a></div>
+                  <div></div>
+                </div>
+                <div style="height: 5%;"></div>
+                <h1 style="color: aliceblue;font-size: 22px;" >IO状态</h1>
+        
+             
+                <!-- <h1 style="color: aliceblue;font-size: 22px;position: absolute;top: 89%;right: 41.5%;;" >IO状态</h1> -->
+
+        
+            </div>
+            <div class="info_grid-item">
+              <div style="height: 17%;"></div>
+              <div id="server-status-container" class="server-grid"></div>
+              <div style="height: 11%;"></div>
+              <h1 style="color: aliceblue;font-size: 22px;margin-bottom: 1px;" >服务器状态</h1>
+            </div>
+          </div>
+
+         </div>
+    
+        </div>
+        <div id="server" class="display_none">
+          <div class="server_info-container"> 
+          <h2 class="server_info-title">服务器列表</h2>
+          <div class="server_info-list">
+          </div>
+          </div>
+        </div>
+    
+        <div id="setting" class="display_none">
+          <div class="setting-container">
+            <div class="setting-left">
+              <h1 class="setting-title">设置 & 调试</h1>
+              <div class="runtime-container">
+                <h2 id="runtime">服务运行时间: 00:00:00</h2>
+              </div>
+              <div class="button-container">
+                <!-- 通信开关 -->
+                <label class="sw-row" onclick="toggle_loop()">
+                  <span class="sw-label">数据通信</span>
+                  <span class="sw-track" id="sw-loop">
+                    <span class="sw-thumb"></span>
+                  </span>
+                </label>
+                <!-- 调试输出开关 -->
+                <label class="sw-row" onclick="toggle_log()">
+                  <span class="sw-label">调试输出</span>
+                  <span class="sw-track" id="sw-log">
+                    <span class="sw-thumb"></span>
+                  </span>
+                </label>
+                <button class="setting-button" onclick="clear_log()">清空日志</button>
+                <button class="setting-button" onclick="c_reboot()">重启控制器</button>
+              </div>
+              <!-- 自动锁屏时间 -->
+              <div class="autolock-group">
+                <span class="autolock-label">自动锁屏</span>
+                <select class="autolock-select" id="autolock-select" onchange="setAutoLock(parseInt(this.value))">
+                  <option value="60000">1 分钟</option>
+                  <option value="300000">5 分钟</option>
+                  <option value="3600000">1 小时</option>
+                  <option value="0">永不</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-right">
+              <div class="log-stage">
+                <img class="debug-keai" src="./index/img/keai_user.png?v=1" alt="keai">
+                <div class="log-container" id="log-container">
+                  <!-- 动态添加的日志将显示在这里 -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 电源模态框 1 -->
+        <div id="modal-1" class="modal hidden">
+          <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>CSPS电源信息</h2>
+            <!-- <div style="height: 2%;"></div> -->
+            <div id="power-info" class="power-info">
+              <!-- 动态插入电源数据 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 网络模态框 2 -->
+        <div id="modal-2" class="modal hidden">
+          <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>网络状态</h2>
+            <div style="height: 5%;"></div>
+            <div class="network_status-grid-container_info">
+              <div> <a style="color: #f3e4e4;" href="#">网卡状态 </a></div>
+              <div> <a id="Network_card_status_info" style="color: aliceblue;" href="#">link </a></div>
+ 
+
+              <div> <a style="color: #f3e4e4;" href="#">网关状态 </a></div>
+              <div> <a id="Network_gateway_info" style="color: aliceblue;" href="#">online </a></div>
+     
+              
+              <div> <a style="color: #f3e4e4;" href="#">外网状态 </a></div>
+              <div> <a id="Network_WAN_info" style="color: aliceblue;" href="#">online </a></div>
+      
+
+              <div> <a style="color: #f3e4e4;" href="#">反向代理 </a></div>
+              <div> <a id="Network_Reverse_proxy_info" style="color: aliceblue;" href="#">online </a></div>
+        
+
+              <div> <a style="color: #f3e4e4;" href="#">科学网络 </a></div>
+              <div> <a id="Network_God_use_VPN_info" style="color: #747474;" href="#">break </a></div>
+         
+     
+            </div>
+          </div>
+        </div>
+
+        <!-- 环境模态框 3 -->
+        <div id="modal-3" class="modal hidden">
+          <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>环境信息</h2>
+            <div style="height: 5%;"></div>
+            <div class="env_info-grid-container_info">
+              <div> <a style="color: #f3e4e4;" href="#">机柜照明灯光 </a></div>
+              <label class="switch">
+                <input type="checkbox" id="env_light_status_switch" checked>
+                <span class="slider round"></span>
+              </label>
+
+              <div> <a style="color: #f3e4e4;" href="#">空气滤网寿命 </a></div>
+              <div> <a id="env_Remaining_filter_element_info" style="color: #b0eec1;" href="#">100% </a></div>
+       
+              
+              <div> <a style="color: #f3e4e4;" href="#">机柜环境温度 </a></div>
+              <div> <a id="env_Temperature_info" style="color: aliceblue;" href="#">25°C </a></div>
+        
+
+              <div> <a style="color: #f3e4e4;" href="#">机柜环境湿度 </a></div>
+              <div> <a id="env_Humidity_info" style="color: aliceblue;" href="#">40% </a></div>
+
+              <div> <a style="color: #f3e4e4;" href="#">UPS在线电源 </a></div>
+              <div> <a id="env_UPS_STATE_info" style="color: aliceblue;" href="#">online </a></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 风扇模态框 4 -->
+        <div id="modal-4" class="modal hidden">
+          <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>风扇状态</h2>
+            <div style="height: 5%;"></div>
+            <div class="fan-grid-container_info"></div>
+          </div>
+        </div>
+
+        <!-- io模态框 5 -->
+        <div id="modal-5" class="modal hidden">
+          <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>IO状态</h2>
+            <div style="height: 5%;"></div>
+            <div id="io-status-container" class="io-grid">
+              <!-- IO 状态将动态填充 -->
+          </div>
+          </div>
+        </div>
+
+      
+
+      </div>
+      </div>
+ 
+      <!-- 滑动锁屏 -->
+      <div id="lock-modal" class="modal-lock">
+        <div class="modal-lock-content">
+          <h2 style="color: #999999;">LOCK</h2>
+          <div class="slider-container">
+            <div id="slider-track" class="slider-track">
+              <div id="slider-thumb" class="slider-thumb"></div>
+              <div class="slider-text">滑动解锁 ›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+       <script src="./index/index.js"></script>
+       <script type="text/javascript" src="./index/echarts.min.js"></script>
+       <script type="text/javascript" src="./index/index_echarts.js"></script>
+       <script type="text/javascript" src="./index/socket.io.min.js"></script>
+       <script type="text/javascript" src="./index/index_socket.js"></script>
+  </body>
+</html>

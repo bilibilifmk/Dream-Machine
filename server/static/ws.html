@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket 通信测试</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f9f9f9;
+        }
+
+        .chat-container {
+            width: 95%;
+            height: 95%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #d400b13b;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .messages-box {
+            flex-grow: 1;
+            padding: 10px;
+            background-color: #fefefe;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message-item {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+
+        .message-item.user-message {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message-item p {
+            margin: 0;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        .message-item.user-message p {
+            background-color: #d400b13b;
+            color: white;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            background-color: #fafafa;
+            gap: 10px;
+        }
+
+        .input-container select {
+            width: 20%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .input-container input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .input-container button {
+            padding: 12px 20px;
+            background-color: #d400b13b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .input-container button:hover {
+            background-color: #5d0d4f3b;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">WebSocket 通信调试</div>
+        <div id="messages" class="messages-box"></div>
+        <div class="input-container">
+            <select id="commandSelect" onchange="insertCommand()">
+                <option value="" disabled selected>选择命令</option>
+                <option value='{"ID":"COMMAND","MSG":"RUN"}'>开启消息轮询</option>
+                <option value='{"ID":"COMMAND","MSG":"STOP"}'>关闭消息轮询</option>
+                <option value='{"ID":"SETIO","IO":0,"SET":1}'>IO控制</option>
+                <option value='{"ID":"SETFAN","FANID":0,"SET":255}'>风扇控制</option>
+            </select>
+        <input type="text" id="messageInput" placeholder="喵～">
+            <button onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+
+    <script>
+        // 获取当前时间的格式化字符串
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        // 连接到 WebSocket 服务器
+        const socket = io();
+
+        // 接收服务器响应并在页面上显示
+        socket.on('response', function(data) {
+            const messagesBox = document.getElementById('messages');
+
+            // 创建新消息容器
+            const messageItem = document.createElement('div');
+            messageItem.className = 'message-item server-message';
+
+            // 创建消息内容
+            const messageContent = document.createElement('p');
+            messageContent.textContent = data.message;
+
+            // 创建时间标签
+            const messageTime = document.createElement('span');
+            messageTime.className = 'message-time';
+            messageTime.textContent = getCurrentTime();
+
+            // 组装消息元素
+            messageItem.appendChild(messageContent);
+            messageItem.appendChild(messageTime);
+            messagesBox.appendChild(messageItem);
+
+            // 滚动到最新消息
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        });
+
+        // 插入预设命令到输入框
+        function insertCommand() {
+            const commandSelect = document.getElementById('commandSelect');
+            const messageInput = document.getElementById('messageInput');
+            messageInput.value = commandSelect.value; // 将选中的命令插入输入框
+        }
+
+        // 发送消息函数
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value;
+
+            if (message.trim() !== '') {
+                const messagesBox = document.getElementById('messages');
+
+                // 创建用户消息容器
+                const messageItem = document.createElement('div');
+                messageItem.className = 'message-item user-message';
+
+                // 创建消息内容
+                const messageContent = document.createElement('p');
+                messageContent.textContent = message;
+
+                // 创建时间标签
+                const messageTime = document.createElement('span');
+                messageTime.className = 'message-time';
+                messageTime.textContent = getCurrentTime();
+
+                // 组装消息元素
+                messageItem.appendChild(messageContent);
+                messageItem.appendChild(messageTime);
+                messagesBox.appendChild(messageItem);
+
+                // 滚动到最新消息
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+
+                // 通过 WebSocket 发送消息
+                socket.send(message);
+
+                // 清空输入框
+                messageInput.value = '';
+                document.getElementById('commandSelect').value = ''; // 重置下拉框
+            }
+        }
+
+        // 当连接建立时的处理
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+
+        // 当连接断开时的处理
+        socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+        });
+    </script>
+</body>
+</html>

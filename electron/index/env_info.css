@@ -1,0 +1,75 @@
+.env_info-grid-container {
+ 
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-template-rows: repeat(8, auto);
+    gap: 5px;
+    margin: 0 auto;
+    justify-items: stretch;
+    padding: 0 20px; /* 增加左右的内边距 */
+    grid-column-gap: 20px; /* 设置列之间的间距 */
+
+    }
+
+    .env_info-grid-container_info {
+ 
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        grid-template-rows: repeat(8, auto);
+        gap: 5px;
+        margin: 0 auto;
+        justify-items: stretch;
+        padding: 0 20px; /* 增加左右的内边距 */
+        grid-column-gap: 20px; /* 设置列之间的间距 */
+        font-size: 50px; /* 设置字体大小 */
+        }
+
+    /* 开关外壳 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 80px; /* 调整宽度 */
+    height: 40px; /* 调整高度 */
+    left:30%;
+  }
+  
+  /* 隐藏原始复选框 */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* 滑块 */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 40px; /* 圆角滑块 */
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 32px; /* 调整按钮大小 */
+    width: 32px; /* 调整按钮大小 */
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%; /* 圆形按钮 */
+  }
+  
+  /* 开启状态 */
+  input:checked + .slider {
+    background-color: #4caf50;
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(40px);
+  }

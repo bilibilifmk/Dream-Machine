@@ -1,0 +1,14 @@
+[Unit]
+Description=Dream_Machine_state_app
+After=syslog.target network.target
+
+[Service]
+Type=simple
+RemainAfterExit=1
+Restart=always
+User=root
+WorkingDirectory=/opt/Dream_Machine/server_state_app
+ExecStart=/usr/bin/python3 server_state_app.py
+
+[Install]
+WantedBy=multi-user.target

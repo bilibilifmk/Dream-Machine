@@ -1,0 +1,31 @@
+.network_status-grid-container {
+ 
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-template-rows: repeat(8, auto);
+    gap: 5px;
+    margin: 0 auto;
+    justify-items: stretch;
+    padding: 0 20px; /* 增加左右的内边距 */
+    grid-column-gap: 20px; /* 设置列之间的间距 */
+
+    }
+    
+.io-spacing{
+    margin-bottom: 20px; /* 设置每个 div 之间的垂直间距为 20px */
+    margin-right: 10px; /* 设置每个 div 之间的水平间距为 10px */
+}
+
+.network_status-grid-container_info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 两列等宽布局 */
+    grid-template-rows: auto; /* 自动行高 */
+    gap: 10px; /* 行列间距 */
+    margin: 0 auto;
+    justify-items: stretch;
+    padding: 0 20px; /* 增加左右的内边距 */
+    grid-column-gap: 20px; /* 设置列之间的间距 */
+    font-size: 40px; /* 设置字体大小 */
+    color: #4a5568; /* 设置字体颜色 */
+  }
+    

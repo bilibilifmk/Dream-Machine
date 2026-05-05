@@ -1,0 +1,194 @@
+/* 服务器状态样式 */
+.server-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    /* gap: 12px; 每行间距 */
+    }
+    
+    .server-item {
+    display: flex;
+    justify-content: space-between; /* 两侧对齐 */
+    align-items: center; /* 垂直居中 */
+    padding: 2px 25px; /* 内边距 */
+
+    transition: background-color 0.3s; /* 动态效果 */
+    }
+    
+    .server-item:hover {
+    background-color: #e5e7eb; /* 悬停时背景色变化 */
+    }
+    
+    .server-details {
+    display: flex;
+    flex-direction: column;
+    }
+    
+    .server-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #f3e4e4; /* 深灰色文字 */
+    flex: 1; /* 名称占用尽可能多的空间 */
+    }
+    
+    /* 右侧内容 */
+    .server-right {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 负载百分比与指示灯的间距 */
+    }
+    
+    .server-load {
+    font-size: 14px;
+    font-weight: bold;
+    color: #4b5563; /* 默认灰色文字 */
+    margin-left: 8px; /* 错误信息与名称之间的间距 */
+    }
+    
+    .text-green {
+    color: #b0eec1; /* 在线时绿色 */
+    }
+    
+    .text-red {
+    color: #ef4444; /* 离线时红色 */
+    }
+    
+    .status-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%; /* 圆形 */
+    background-color: #d1d5db; /* 默认灰色 */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* 阴影 */
+    border: 1px solid #000; /* 黑色边框 */
+    }
+
+    
+    .status-indicator.online {
+    background-color: #10b981; /* 在线时为绿色 */
+    }
+    
+    .status-indicator.offline {
+    background-color: #747474; /* 离线时为红色 */
+    }
+    @keyframes blink {
+    0%, 100% {
+    opacity: 1;
+    }
+    50% {
+    opacity: 0.5;
+    }
+    }
+    
+    /* 指示灯基础样式 */
+    .status-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%; /* 圆形 */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* 阴影 */
+    border: 1px solid #000; /* 黑色边框 */
+      animation: blink 7s infinite; /* 降低闪烁频率，减少持续开销 */
+    }
+    
+    /* 绿色指示灯 */
+    .status-indicator.green {
+    background-color: #b0eec1; /* 绿色 */
+    }
+    
+    /* 黄色指示灯 */
+    .status-indicator.yellow {
+    background-color: #facc15; /* 黄色 */
+    }
+    
+    /* 红色指示灯 */
+    .status-indicator.red {
+    background-color: #747474; /* 红色 */
+    }
+    
+    /* 禁用闪烁（如果需要某些状态不闪烁） */
+    .no-blink {
+    animation: none;
+    }
+   
+
+
+
+    /* 容器样式 */
+.server_info-container {
+    width: 95%;
+    margin: 20px auto;
+    padding: 10px;
+    background-color: #f0e2e200;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 标题样式 */
+  .server_info-title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    color: #1b1b1b;
+  }
+  
+  /* 整体服务器列表样式 */
+  .server_info-list {
+    color: #fafafa;
+    height: 490px; /* 限制高度 */
+    overflow-y: auto; /* 启用垂直滚动 */
+    display: flex;
+    flex-direction: column; /* 单列布局 */
+    gap: 20px;
+  }
+  
+  /* 隐藏滚动条 - Webkit 浏览器 */
+  .server_info-list::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* 隐藏滚动条 - Firefox */
+  .server_info-list {
+    scrollbar-width: none;
+  }
+  
+  /* 单个服务器项样式 */
+  .server_info-item {
+    width: 100%;
+    padding: 15px;
+    background-color: #fbe4f30a;
+    /* border: 1px solid #ddd; */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column; /* 垂直排列 */
+    gap: 10px;
+  }
+  
+  /* 进度条样式（用于平均负载） */
+  .server_info-progress-bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #e0e0e0;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .server_info-progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: calc(var(--value, 0) * 1%);
+    background-color: hsl(calc(120 - var(--value, 0) * 1.2), 70%, 50%);
+    transition: width 0.3s ease;
+    border-radius: 5px;
+  }
+  
+  /* 通信延迟文字颜色 */
+  .server_info-latency-value {
+    font-weight: bold;
+    color: hsl(calc(120 - var(--latency, 0) / 2), 70%, 50%);
+    transition: color 0.3s ease;
+  }

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试模式控制台 - Dream Machine</title>
+    <link rel="stylesheet" href="/static/index/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Optional for charts, but simple CSS is better for now -->
+    <style>
+        /* Base Styles */
+        * { box-sizing: border-box; }
+        
+        body {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        /* Components */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 16px;
+        }
+        
+        .control-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #4b5563;
+        }
+
+        /* IO Switches Grid */
+        .io-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .io-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f9fafb;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Custom Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Sliders */
+        .range-slider {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* Metrics Display */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .metric-card {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* JSON Editor (Hidden by default or smaller) */
+        .json-editor {
+            font-family: monospace;
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            resize: vertical;
+            display: block; /* 显示编辑器 */
+            box-sizing: border-box;
+        }
+        
+        .show-json-btn {
+            font-size: 12px;
+            background: none;
+            border: none;
+            color: #3b82f6;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            background: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+        
+        .refresh-indicator {
+            width: 8px; height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+        }
+        .refresh-indicator.error { background: #ef4444; }
+
+        /* Fan Visual */
+        .fan-visual {
+            width: 24px; height: 24px;
+            animation: spin 0s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+    <aside style="flex-shrink: 0;">
+        <div class="avatar"><img src="/static/img/user.jpg"></div>
+        <div style="flex: 1;"></div>
+        <svg class="icon" onclick="href('/')" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <svg class="icon" onclick="href('/cfg')" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <svg class="icon" style="color:#f472b6;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        <div style="flex: 1;"></div>
+        <svg class="icon" onclick="href('/logout')" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+    </aside>
+
+    <main>
+        <div class="status-bar">
+            <h1>🐛 调试控制台</h1>
+            <div style="flex:1"></div>
+            <div style="display:flex; align-items:center; gap:8px; margin-right: 20px;">
+                <span class="refresh-indicator" id="refreshDot"></span>
+                <span style="font-size:12px; color:#6b7280" id="lastUpdate">Checking...</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="debugModeToggle" onchange="toggleDebugMode(this.checked)">
+                <span class="slider"></span>
+            </label>
+            <span style="font-weight:500;">调试模式</span>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- MCU Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🔌 MCU 控制 (IO & 风扇)</h2>
+                    <button class="show-json-btn" onclick="toggleJson('mcuData')">Raw JSON</button>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">输出 IO 控制 (OUT_IO_SET)</label>
+                    <div class="io-grid" id="ioContainer">
+                        <!-- JS Generated -->
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">风扇控制 (PWM 0-100%)</label>
+                    <div style="display:flex; flex-direction:column; gap:10px;" id="fanContainer">
+                        <!-- JS Generated -->
+                    </div>
+                </div>
+                
+                <textarea id="mcuData" class="json-editor"></textarea>
+            </div>
+
+            <!-- Sensors Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📊 传感器数据</h2>
+                    <button class="show-json-btn" onclick="saveSensorData(event)" style="background:#10b981; color:white; padding:4px 12px; border-radius:4px; text-decoration:none;">💾 保存</button>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">温度 (°C)</div>
+                        <input type="number" id="input_temp" style="width:100%; padding:6px; border:1px solid #e5e7eb; border-radius:4px; font-size:16px; margin-top:4px;" value="0">
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">湿度 (%)</div>
+                        <input type="number" id="input_hum" style="width:100%; padding:6px; border:1px solid #e5e7eb; border-radius:4px; font-size:16px; margin-top:4px;" value="0">
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">电流 (mA)</div>
+                        <input type="number" id="input_curr" style="width:100%; padding:6px; border:1px solid #e5e7eb; border-radius:4px; font-size:16px; margin-top:4px;" value="0">
+                    </div>
+                </div>
+                <div style="margin-top:16px;">
+                    <label class="control-label">电压监测 (Voltage Buf)</label>
+                    <div class="metric-grid" style="grid-template-columns: repeat(3, 1fr);" id="voltageContainer">
+                        <!-- JS Generated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Power Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">⚡ 电源状态</h2>
+                    <button class="show-json-btn" onclick="savePowerData(event)" style="background:#10b981; color:white; padding:4px 12px; border-radius:4px;">💾 保存</button>
+                </div>
+                <textarea id="powerData" class="json-editor" style="margin-top:10px; min-height:200px; font-family:monospace; padding:10px; border:1px solid #e5e7eb; border-radius:4px; width:100%; box-sizing:border-box;" placeholder='{"IN_Voltage":0, "IN_Current":0, "IN_Power":0, "OUT_Voltage":0, "OUT_Current":0, "OUT_Power":0}'></textarea>
+            </div>
+
+            <!-- Network Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🌐 网络状态</h2>
+                    <button class="show-json-btn" onclick="saveNetworkData(event)" style="background:#10b981; color:white; padding:4px 12px; border-radius:4px;">💾 保存</button>
+                </div>
+                <textarea id="networkData" class="json-editor" style="margin-top:10px; min-height:200px; font-family:monospace; padding:10px; border:1px solid #e5e7eb; border-radius:4px; width:100%; box-sizing:border-box;" placeholder='{"ip":"192.168.1.100", "status":"connected"}'></textarea>
+            </div>
+
+            <!-- Server Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🖥️ 服务器状态</h2>
+                    <button class="show-json-btn" onclick="saveServerData(event)" style="background:#10b981; color:white; padding:4px 12px; border-radius:4px;">💾 保存</button>
+                </div>
+                <textarea id="serverData" class="json-editor" style="margin-top:10px; min-height:200px; font-family:monospace; padding:10px; border:1px solid #e5e7eb; border-radius:4px; width:100%; box-sizing:border-box;" placeholder='{"cpu":0, "memory":0, "uptime":0}'></textarea>
+            </div>
+            
+        </div>
+    </main>
+
+    <script>
+        function href(url) { window.location.href = url; }
+        function toggleJson(id) {
+            const el = document.getElementById(id);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        let isEditing = false; // Prevent update loop when dragging slider
+        let refreshInterval = null;
+
+        // Init Data Structures
+        let mcuData = { OUT_IO_SET: Array(7).fill(false), FAN_PWM_SET: Array(4).fill(0), FAN_RPM: Array(4).fill(0), voltage_buf: [0,0,0], Humidity:0, Temperature:0, Current:0 };
+        let powerData = {IN_Voltage:0, IN_Current:0, IN_Power:0, OUT_Voltage:0, OUT_Current:0, OUT_Power:0};
+        let networkData = {status: "等待加载..."};
+        let serverData = {status: "等待加载..."};
+
+        // ------- Render Functions -------
+        function renderIO() {
+            const container = document.getElementById('ioContainer');
+            container.innerHTML = '';
+            mcuData.OUT_IO_SET.forEach((state, i) => {
+                const div = document.createElement('div');
+                div.className = 'io-item';
+                div.innerHTML = `
+                    <span style="font-size:12px; margin-bottom:4px;">IO ${i}</span>
+                    <label class="switch">
+                        <input type="checkbox" ${state ? 'checked' : ''} onchange="updateIO(${i}, this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderFans() {
+            const container = document.getElementById('fanContainer');
+            container.innerHTML = '';
+            mcuData.FAN_PWM_SET.forEach((pwm, i) => {
+                const rpm = mcuData.FAN_RPM ? mcuData.FAN_RPM[i] : 0;
+                const div = document.createElement('div');
+                div.style.cssText = "display:flex; align-items:center; gap:12px; background:#f8fafc; padding:8px; border-radius:6px;";
+                
+                // RPM Visual speed (just animation duration hack)
+                const animDuration = rpm > 0 ? (6000 / (rpm || 1)) + 's' : '0s';
+                
+                div.innerHTML = `
+                    <div style="font-weight:bold; width: 40px;">F${i}</div>
+                    <div style="flex:1">
+                        <input type="range" class="range-slider" min="0" max="100" value="${pwm}" 
+                            oninput="updateFan(${i}, this.value)" 
+                            onmousedown="isEditing=true" onmouseup="isEditing=false; commitFan(${i}, this.value)">
+                        <div style="display:flex; justify-content:space-between; font-size:10px; color:#64748b; margin-top:2px;">
+                            <span>Set: ${pwm}%</span>
+                            <span>RPM: ${rpm}</span>
+                        </div>
+                    </div>
+                    <svg class="fan-visual" style="animation-duration:${animDuration}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                        <path d="M12 12c0 -4 4 -3 4 -6c0 3 -1 4 -4 4" />
+                        <path d="M12 12c-4 0 -3 4 -6 4c3 0 4 -1 4 -4" />
+                        <path d="M12 12c0 4 -4 3 -4 6c0 -3 1 -4 4 -4" />
+                        <path d="M12 12c4 0 3 -4 6 -4c-3 0 -4 1 -4 4" />
+                    </svg>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderSensors() {
+            // 只更新未聚焦的输入框，避免覆盖用户正在编辑的内容
+            const tempInput = document.getElementById('input_temp');
+            if(tempInput && document.activeElement !== tempInput) {
+                tempInput.value = mcuData.Temperature || 0;
+            }
+            
+            const humInput = document.getElementById('input_hum');
+            if(humInput && document.activeElement !== humInput) {
+                humInput.value = mcuData.Humidity || 0;
+            }
+            
+            const currInput = document.getElementById('input_curr');
+            if(currInput && document.activeElement !== currInput) {
+                currInput.value = mcuData.Current || 0;
+            }
+            
+            // 更新电压输入框，智能处理避免销毁正在编辑的输入框
+            const vContainer = document.getElementById('voltageContainer');
+            const voltageBuf = mcuData.voltage_buf || [];
+            
+            // 如果数量不匹配，重新生成
+            const existingInputs = vContainer.querySelectorAll('input[id^="input_volt"]');
+            if(existingInputs.length !== voltageBuf.length) {
+                vContainer.innerHTML = '';
+                voltageBuf.forEach((v, i) => {
+                    vContainer.innerHTML += `
+                        <div class="metric-card" style="padding:8px;">
+                            <div class="metric-label">V${i} (V)</div>
+                            <input type="number" step="0.01" id="input_volt${i}" style="width:100%; padding:4px; border:1px solid #e5e7eb; border-radius:4px; font-size:14px; margin-top:4px;" value="${v.toFixed(2)}">
+                        </div>
+                    `;
+                });
+            } else {
+                // 数量匹配，只更新未聚焦的输入框
+                voltageBuf.forEach((v, i) => {
+                    const voltInput = document.getElementById('input_volt' + i);
+                    if(voltInput && document.activeElement !== voltInput) {
+                        voltInput.value = v.toFixed(2);
+                    }
+                });
+            }
+        }
+
+        async function saveSensorData(event) {
+            // 收集所有传感器数据
+            mcuData.Temperature = parseInt(document.getElementById('input_temp').value) || 0;
+            mcuData.Humidity = parseInt(document.getElementById('input_hum').value) || 0;
+            mcuData.Current = parseInt(document.getElementById('input_curr').value) || 0;
+            
+            // 收集电压数据
+            if(!mcuData.voltage_buf) mcuData.voltage_buf = [0, 0, 0];
+            for(let i = 0; i < mcuData.voltage_buf.length; i++) {
+                const input = document.getElementById('input_volt' + i);
+                if(input) {
+                    mcuData.voltage_buf[i] = parseFloat(input.value) || 0;
+                }
+            }
+            
+            // 保存到后端
+            await sendData('mcu', mcuData);
+            showSaveSuccess(event.target);
+        }
+
+        function renderPower(force = false) {
+            const textarea = document.getElementById('powerData');
+            if(textarea && (force || document.activeElement !== textarea)) {
+                textarea.value = JSON.stringify(powerData, null, 2);
+            }
+        }
+
+        async function savePowerData(event) {
+            try {
+                const textarea = document.getElementById('powerData');
+                powerData = JSON.parse(textarea.value);
+                await sendData('power', powerData);
+                showSaveSuccess(event.target);
+            } catch(e) {
+                alert('JSON格式错误: ' + e.message);
+            }
+        }
+
+        function renderNetwork(force = false) {
+            const textarea = document.getElementById('networkData');
+            if(textarea && (force || document.activeElement !== textarea)) {
+                textarea.value = JSON.stringify(networkData, null, 2);
+            }
+        }
+
+        async function saveNetworkData(event) {
+            try {
+                const textarea = document.getElementById('networkData');
+                networkData = JSON.parse(textarea.value);
+                await sendData('network', networkData);
+                showSaveSuccess(event.target);
+            } catch(e) {
+                alert('JSON格式错误: ' + e.message);
+            }
+        }
+
+        function renderServer(force = false) {
+            const textarea = document.getElementById('serverData');
+            if(textarea && (force || document.activeElement !== textarea)) {
+                textarea.value = JSON.stringify(serverData, null, 2);
+            }
+        }
+
+        async function saveServerData(event) {
+            try {
+                const textarea = document.getElementById('serverData');
+                serverData = JSON.parse(textarea.value);
+                await sendData('server', serverData);
+                showSaveSuccess(event.target);
+            } catch(e) {
+                alert('JSON格式错误: ' + e.message);
+            }
+        }
+
+        // 通用保存成功提示
+        function showSaveSuccess(btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ 已保存';
+            btn.style.background = '#059669';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '#10b981';
+            }, 1500);
+        }
+
+        // ------- Logic Functions -------
+
+        // Update IO immediately
+        async function updateIO(index, checked) {
+            mcuData.OUT_IO_SET[index] = checked;
+            await sendData('mcu', mcuData);
+            renderIO(); // re-render to ensure state consistency
+        }
+        
+        // Update Fan (local update for smoothness)
+        function updateFan(index, val) {
+            mcuData.FAN_PWM_SET[index] = parseInt(val);
+            // Don't re-render full list to keep slider focus, just update text if possible or rely on simple reactiveness
+            // Actually, for simplicity, we let the slider move naturally and only commit on mouseup
+        }
+
+        // Commit Fan change
+        async function commitFan(index, val) {
+            isEditing = false;
+            mcuData.FAN_PWM_SET[index] = parseInt(val);
+            // Simulate RPM update for instant feedback (server does this too)
+            mcuData.FAN_RPM[index] = parseInt(val) * 100; 
+            await sendData('mcu', mcuData);
+            renderFans();
+        }
+
+        async function sendData(type, dataObj) {
+            try {
+                await fetch('/debug/set_data', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: type, value: JSON.stringify(dataObj) })
+                });
+                console.log('Saved', type);
+            } catch (e) {
+                console.error('Save failed', e);
+            }
+        }
+
+        // Auto Refresh
+        async function refreshData() {
+            if(isEditing) return; // Don't overwrite while user is dragging
+            
+            try {
+                const res = await fetch('/debug/get_data');
+                const data = await res.json();
+                
+                // Update Local Data if valid
+                if(data.mcu_data) {
+                    const parsed = typeof data.mcu_data === 'string' ? JSON.parse(data.mcu_data) : data.mcu_data;
+                    mcuData = parsed;
+                    document.getElementById('mcuData').value = JSON.stringify(mcuData, null, 2);
+                    renderIO();
+                    renderFans();
+                    renderSensors();
+                }
+
+                if(data.power_data) {
+                    const parsed = typeof data.power_data === 'string' ? JSON.parse(data.power_data) : data.power_data;
+                    powerData = parsed;
+                    const powerTextarea = document.getElementById('powerData');
+                    if(powerTextarea && document.activeElement !== powerTextarea) {
+                        powerTextarea.value = JSON.stringify(powerData, null, 2);
+                    }
+                }
+
+                if(data.network_data) {
+                    const parsed = typeof data.network_data === 'string' ? JSON.parse(data.network_data) : data.network_data;
+                    networkData = parsed;
+                    const networkTextarea = document.getElementById('networkData');
+                    if(networkTextarea && document.activeElement !== networkTextarea) {
+                        networkTextarea.value = JSON.stringify(networkData, null, 2);
+                    }
+                }
+
+                if(data.server_data) {
+                    const parsed = typeof data.server_data === 'string' ? JSON.parse(data.server_data) : data.server_data;
+                    serverData = parsed;
+                    const serverTextarea = document.getElementById('serverData');
+                    if(serverTextarea && document.activeElement !== serverTextarea) {
+                        serverTextarea.value = JSON.stringify(serverData, null, 2);
+                    }
+                }
+
+                const dot = document.getElementById('refreshDot');
+                dot.style.background = '#10b981'; // Green
+                document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
+                
+                // Blink effect
+                setTimeout(() => dot.style.opacity = 0.5, 200);
+                setTimeout(() => dot.style.opacity = 1, 400);
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('refreshDot').style.background = '#ef4444'; // Red
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const res = await fetch('/debug/status');
+                const data = await res.json();
+                document.getElementById('debugModeToggle').checked = data.debug_mode;
+            } catch(e) {}
+        }
+
+        async function toggleDebugMode(enable) {
+            if(!confirm('确定要切换调试模式吗？可能需要重启服务。')) {
+                 document.getElementById('debugModeToggle').checked = !enable;
+                 return;
+            }
+            await fetch('/debug/toggle', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ enable: enable })
+            });
+            setTimeout(checkStatus, 1000);
+        }
+
+        // Boot
+        document.addEventListener('DOMContentLoaded', () => {
+            // 强制渲染初始数据，确保显示
+            const powerTextarea = document.getElementById('powerData');
+            const networkTextarea = document.getElementById('networkData');
+            const serverTextarea = document.getElementById('serverData');
+            
+            if(powerTextarea) {
+                powerTextarea.value = JSON.stringify(powerData, null, 2);
+            }
+            if(networkTextarea) {
+                networkTextarea.value = JSON.stringify(networkData, null, 2);
+            }
+            if(serverTextarea) {
+                serverTextarea.value = JSON.stringify(serverData, null, 2);
+            }
+            
+            checkStatus();
+            refreshData();
+            // Poll every 1.5 seconds
+            setInterval(refreshData, 1500);
+        });
+
+    </script>
+</body>
+</html>

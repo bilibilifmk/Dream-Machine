@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Machine 监控仪表板</title>
+    <link rel="stylesheet" href="/static/index/index.css">
+</head>
+<body>
+    <div id="splash-screen">
+        <div class="splash-inner">
+            <div class="splash-title">Dream Machine</div>
+            <div class="splash-sub">正在加载...</div>
+        </div>
+    </div>
+    <aside>
+        <div class="avatar">
+            <img src="/static/img/user.jpg" alt="User Avatar">
+        </div>
+        <p></p>
+        <!-- 配置文件图标 -->
+        <svg class="icon" onclick="settings()" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="配置文件">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <!-- 调试模式图标 -->
+        <svg id="debug-mode-btn" class="icon" onclick="debugMode()" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="调试模式" style="display:none">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        </svg>
+        <svg class="icon"  onclick="exit()" style="margin-top: auto;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="退出登录">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+    </aside>
+    <main>
+        <div id="conn-error-overlay" class="conn-error-overlay">
+            <span id="conn-error-text">无法连接到服务器</span>
+        </div>
+        <div class="scene">
+            <div class="about-overlay" onclick="toggleAbout()"></div>
+            <img class="keai" src="/static/img/keai_user.png" alt="" onclick="toggleAbout()">
+            <div class="panel">
+                <div class="panel-front">
+                <h2 class="scene-title"><span class="title-main">Dream Machine</span><span class="title-sub"> 仪表盘</span></h2>
+                <div class="grid">
+            <div class="card card-flippable" id="power-card" onclick="flipCard(this)">
+                <div class="fan-header">
+                    <h3>电源状态</h3>
+                    <span id="power-mode-tag" class="power-mode-tag">内建电源</span>
+                </div>
+                <div id="power-inside" class="power-inside">
+                    <div class="power-inline-row">
+                        <span class="pil-label">电压</span>
+                        <span id="Voltage" class="pil-value">-- <span class="pil-unit">V</span></span>
+                    </div>
+                    <div class="power-inline-row">
+                        <span class="pil-label">电流</span>
+                        <span id="Current" class="pil-value">-- <span class="pil-unit">A</span></span>
+                    </div>
+                    <div class="power-inline-row">
+                        <span class="pil-label">功率</span>
+                        <span id="Power" class="pil-value">-- <span class="pil-unit">W</span></span>
+                    </div>
+                </div>
+                <div id="power-external" class="power-external" style="display:none">
+                    <div class="pext-3col">
+                        <div class="pext-col">
+                            <div class="pext-section-title">输入电源</div>
+                            <div class="pext-item"><div class="pext-label">电压</div><div id="in-voltage" class="pext-value">--</div><div class="pext-unit">V</div></div>
+                            <div class="pext-item"><div class="pext-label">电流</div><div id="in-current" class="pext-value">--</div><div class="pext-unit">A</div></div>
+                            <div class="pext-item"><div class="pext-label">功率</div><div id="in-power" class="pext-value">--</div><div class="pext-unit">W</div></div>
+                        </div>
+                        <div class="pext-col">
+                            <div class="pext-section-title">输出电源</div>
+                            <div class="pext-item"><div class="pext-label">电压</div><div id="out-voltage" class="pext-value">--</div><div class="pext-unit">V</div></div>
+                            <div class="pext-item"><div class="pext-label">电流</div><div id="out-current" class="pext-value">--</div><div class="pext-unit">W</div></div>
+                            <div class="pext-item"><div class="pext-label">功率</div><div id="out-power" class="pext-value">--</div><div class="pext-unit">W</div></div>
+                        </div>
+                        <div class="pext-col">
+                            <div class="pext-section-title">温度&amp;风扇</div>
+                            <div class="pext-item"><div class="pext-label">传感刨1</div><div id="pext-temp0" class="pext-value">--</div><div class="pext-unit">°C</div></div>
+                            <div class="pext-item"><div class="pext-label">传感刨2</div><div id="pext-temp1" class="pext-value">--</div><div class="pext-unit">°C</div></div>
+                            <div class="pext-item"><div class="pext-label">风扇</div><div id="pext-fan" class="pext-value">--</div><div class="pext-unit">RPM</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flip-hint">⟳ 点击查看仪表</div>
+            </div>
+            <div class="card">
+                <div class="fan-header">
+                    <span id="net-error" class="fan-error"></span>
+                    <h3>网络状态</h3>
+                </div>
+                <div id="network-status-container" class="network-status">
+                    <!-- 动态填充网络状态 -->
+                </div>
+            </div>
+            <div class="card">
+                <div class="fan-header">
+                    <span id="env-error" class="fan-error"></span>
+                    <h3>环境状态</h3>
+                </div>
+                <div class="flex-between">
+                    <span>机柜照明灯光</span>
+                    <span id="lighting-status" class="text-green">ON</span>
+                </div>
+                <div class="flex-between">
+                    <span>空气滤芯剩余寿命</span>
+                    <span id="filter-life">100%</span>
+                </div>
+                <div class="flex-between">
+                    <span>机柜环境温度</span>
+                    <span id="temperature">25°C</span>
+                </div>
+                <div class="flex-between">
+                    <span>机柜环境湿度</span>
+                    <span id="humidity">40%</span>
+                </div>
+                <div class="flex-between">
+                    <span>UPS在线电源</span>
+                    <span id="ups-status" class="text-green">online</span>
+                </div>
+            </div>
+            <div class="card card-flippable" id="fan-card" onclick="flipFanCard(this)">
+                <h3>风扇状态</h3>
+                <div class="fan-container">
+                    <div class="fan" id="fan-preview-spin">
+                        <div class="fan-blade"></div>
+                        <div class="fan-blade"></div>
+                        <div class="fan-blade"></div>
+                    </div>
+                    <div class="fan-center"></div>
+                    <span id="fan-error" class="fan-error">ERROR</span>
+                  </div>
+                <div id="fan-rpm" class="fan-grid">
+                    <!-- 风扇 RPM 将动态填充 -->
+                </div>
+                <div class="flip-hint">⟳ 点击调速</div>
+            </div>
+            <div class="card">
+                <h3>IO状态</h3>
+                <div id="io-status-container" class="io-grid">
+                    <!-- IO 状态将动态填充 -->
+                </div>
+            </div>
+           
+            <div class="card">
+                <h3>服务器状态</h3>
+                <div id="server-status-container" class="server-grid">
+                    <!-- 示例服务器状态 -->
+                 
+                </div>
+            </div>
+                </div><!-- /.grid -->
+                </div><!-- /.panel-front -->
+
+                <!-- 电源仪表展开浮层（position:absolute 内容在 .panel 内） -->
+                <div id="power-expand-backdrop" onclick="closePowerExpand()"></div>
+                <div id="power-expand-screen">
+                    <div class="power-expand-header">
+                        <div class="fan-header" style="margin-bottom:0">
+                            <h3>电源仪表</h3>
+                            <span id="power-mode-tag-back" class="power-mode-tag">内建电源</span>
+                        </div>
+                        <button class="power-expand-close" onclick="closePowerExpand()">↩ 返回</button>
+                    </div>
+                    <div id="power-back-inside" class="power-gauges-lg">
+                        <div class="gauge-item"><div class="gauge-wrap-lg"><svg class="gauge-svg" viewBox="0 0 100 100"><circle class="gauge-track" cx="50" cy="50" r="38"/><circle id="gauge-voltage-arc" class="gauge-fill gauge-fill-v" cx="50" cy="50" r="38" transform="rotate(-90 50 50)"/></svg><div class="gauge-center"><span id="gauge-voltage-val" class="gauge-num-lg">0</span><span class="gauge-unit-lg">V</span></div></div><div class="gauge-label-lg">电压</div></div>
+                        <div class="gauge-item"><div class="gauge-wrap-lg"><svg class="gauge-svg" viewBox="0 0 100 100"><circle class="gauge-track" cx="50" cy="50" r="38"/><circle id="gauge-current-arc" class="gauge-fill gauge-fill-a" cx="50" cy="50" r="38" transform="rotate(-90 50 50)"/></svg><div class="gauge-center"><span id="gauge-current-val" class="gauge-num-lg">0</span><span class="gauge-unit-lg">A</span></div></div><div class="gauge-label-lg">电流</div></div>
+                        <div class="gauge-item"><div class="gauge-wrap-lg"><svg class="gauge-svg" viewBox="0 0 100 100"><circle class="gauge-track" cx="50" cy="50" r="38"/><circle id="gauge-power-arc" class="gauge-fill gauge-fill-w" cx="50" cy="50" r="38" transform="rotate(-90 50 50)"/></svg><div class="gauge-center"><span id="gauge-power-val" class="gauge-num-lg">0</span><span class="gauge-unit-lg">W</span></div></div><div class="gauge-label-lg">功率</div></div>
+                    </div>
+                    <!-- 外置电源：3个并排同心三环圆组 -->
+                    <div id="power-back-external" class="pext-rings-layout" style="display:none">
+                        <!-- 输入电源 -->
+                        <div class="pext-ring-group">
+                            <div class="pext-ring-title">输入电源</div>
+                            <div class="pext-ring-wrap">
+                                <svg class="pext-ring-svg" viewBox="0 0 100 100">
+                                    <circle class="ring-track ring-track-v" cx="50" cy="50" r="38"/>
+                                    <circle id="gauge-in-v-arc" class="ring-fill ring-fill-v" cx="50" cy="50" r="38" transform="rotate(-90 50 50)" data-circ="238.76"/>
+                                    <circle class="ring-track ring-track-a" cx="50" cy="50" r="28"/>
+                                    <circle id="gauge-in-a-arc" class="ring-fill ring-fill-a" cx="50" cy="50" r="28" transform="rotate(-90 50 50)" data-circ="175.93"/>
+                                    <circle class="ring-track ring-track-w" cx="50" cy="50" r="18"/>
+                                    <circle id="gauge-in-w-arc" class="ring-fill ring-fill-w" cx="50" cy="50" r="18" transform="rotate(-90 50 50)" data-circ="113.10"/>
+                                </svg>
+                                <div class="pext-ring-center">
+                                    <div class="prc-row"><span class="prc-label">电压</span><span class="rcv-dot rcv-dot-v"></span><span id="gauge-in-v-val" class="prc-num">0</span><span class="prc-unit">V</span></div>
+                                    <div class="prc-row"><span class="prc-label">电流</span><span class="rcv-dot rcv-dot-a"></span><span id="gauge-in-a-val" class="prc-num">0</span><span class="prc-unit">A</span></div>
+                                    <div class="prc-row"><span class="prc-label">功率</span><span class="rcv-dot rcv-dot-w"></span><span id="gauge-in-w-val" class="prc-num">0</span><span class="prc-unit">W</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 输出电源 -->
+                        <div class="pext-ring-group">
+                            <div class="pext-ring-title">输出电源</div>
+                            <div class="pext-ring-wrap">
+                                <svg class="pext-ring-svg" viewBox="0 0 100 100">
+                                    <circle class="ring-track ring-track-v" cx="50" cy="50" r="38"/>
+                                    <circle id="gauge-ext-v-arc" class="ring-fill ring-fill-v" cx="50" cy="50" r="38" transform="rotate(-90 50 50)" data-circ="238.76"/>
+                                    <circle class="ring-track ring-track-a" cx="50" cy="50" r="28"/>
+                                    <circle id="gauge-ext-a-arc" class="ring-fill ring-fill-a" cx="50" cy="50" r="28" transform="rotate(-90 50 50)" data-circ="175.93"/>
+                                    <circle class="ring-track ring-track-w" cx="50" cy="50" r="18"/>
+                                    <circle id="gauge-ext-w-arc" class="ring-fill ring-fill-w" cx="50" cy="50" r="18" transform="rotate(-90 50 50)" data-circ="113.10"/>
+                                </svg>
+                                <div class="pext-ring-center">
+                                    <div class="prc-row"><span class="prc-label">电压</span><span class="rcv-dot rcv-dot-v"></span><span id="gauge-ext-v-val" class="prc-num">0</span><span class="prc-unit">V</span></div>
+                                    <div class="prc-row"><span class="prc-label">电流</span><span class="rcv-dot rcv-dot-a"></span><span id="gauge-ext-a-val" class="prc-num">0</span><span class="prc-unit">A</span></div>
+                                    <div class="prc-row"><span class="prc-label">功率</span><span class="rcv-dot rcv-dot-w"></span><span id="gauge-ext-w-val" class="prc-num">0</span><span class="prc-unit">W</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 温度 & 风扇 -->
+                        <div class="pext-ring-group">
+                            <div class="pext-ring-title">温度 / 风扇</div>
+                            <div class="pext-ring-wrap">
+                                <svg class="pext-ring-svg" viewBox="0 0 100 100">
+                                    <circle class="ring-track ring-track-v" cx="50" cy="50" r="38"/>
+                                    <circle id="gauge-temp0-arc" class="ring-fill ring-fill-v" cx="50" cy="50" r="38" transform="rotate(-90 50 50)" data-circ="238.76"/>
+                                    <circle class="ring-track ring-track-a" cx="50" cy="50" r="28"/>
+                                    <circle id="gauge-temp1-arc" class="ring-fill ring-fill-a" cx="50" cy="50" r="28" transform="rotate(-90 50 50)" data-circ="175.93"/>
+                                    <circle class="ring-track ring-track-w" cx="50" cy="50" r="18"/>
+                                    <circle id="gauge-fan-arc" class="ring-fill ring-fill-w" cx="50" cy="50" r="18" transform="rotate(-90 50 50)" data-circ="113.10"/>
+                                </svg>
+                                <div class="pext-ring-center">
+                                    <div class="prc-row"><span class="prc-label">温度1</span><span class="rcv-dot rcv-dot-v"></span><span id="gauge-temp0-val" class="prc-num">0</span><span class="prc-unit">°C</span></div>
+                                    <div class="prc-row"><span class="prc-label">温度2</span><span class="rcv-dot rcv-dot-a"></span><span id="gauge-temp1-val" class="prc-num">0</span><span class="prc-unit">°C</span></div>
+                                    <div class="prc-row"><span class="prc-label">风扇</span><span class="rcv-dot rcv-dot-w"></span><span id="gauge-fan-val" class="prc-num">0</span><span class="prc-unit">RPM</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /#power-expand-screen -->
+
+                <!-- 风扇展开屏 -->
+                <div id="fan-expand-backdrop" class="expand-backdrop" onclick="closeFanExpand()"></div>
+                <div id="fan-expand-screen">
+                    <button class="expand-close-btn" onclick="closeFanExpand()">✕</button>
+                    <h3 class="pexp-title">风扇控制</h3>
+                    <div class="fan-expand-body">
+                        <!-- 4个风扇动画格子 -->
+                        <div class="fan-expand-grid" id="fan-expand-grid">
+                            <!-- JS 动态填充 -->
+                        </div>
+
+                    </div>
+                </div><!-- /#fan-expand-screen -->
+
+            </div><!-- /.panel -->
+
+            <!-- 关于页全屏浮层（独立于 panel，position:fixed） -->
+            <div class="about-screen">
+                    <div class="about-wrap">
+                        <div class="about-icon">⚡</div>
+                        <h2 class="about-name">Dream Machine</h2>
+                        <p class="about-ver">智能机柜监控与管理系统</p>
+                        <div class="about-divider"></div>
+                        <div class="about-rows">
+                            <div class="about-row"><span>运行环境</span><span>Flask · Python 3</span></div>
+                            <div class="about-row"><span>界面框架</span><span>纯 CSS · Vanilla JS</span></div>
+                        </div>
+                        <a class="about-github" href="https://github.com/bilibilifmk/Dream-Machine" target="_blank" rel="noopener">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                            GitHub
+                        </a>
+                        <button class="about-close" onclick="toggleAbout()">关闭</button>
+                    </div>
+            </div><!-- /.about-screen -->
+        </div><!-- /.scene -->
+    </main>
+    <script src="/static/index/index.js"></script>
+    <script>
+    window.addEventListener('load', function () {
+        var s = document.getElementById('splash-screen');
+        if (s) setTimeout(function () { s.classList.add('done'); }, 350);
+    });
+    (function () {
+        const main = document.querySelector('main');
+        function syncOverflow() {
+            main.style.overflowY = main.scrollHeight > main.clientHeight + 2 ? 'auto' : 'hidden';
+        }
+        const ro = new ResizeObserver(syncOverflow);
+        ro.observe(main);
+        syncOverflow();
+    })();
+    </script>
+</body>
+</html>

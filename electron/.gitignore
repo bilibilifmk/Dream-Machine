@@ -1,0 +1,18 @@
+# 依赖
+node_modules/
+
+# 部署脚本（含明文密码）
+deploy.sh
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+npm-debug.log*
+
+# 运行时 / 构建产物
+dist/
+out/
+.cache/

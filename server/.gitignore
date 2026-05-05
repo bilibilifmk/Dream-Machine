@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+# Virtual environments
+.venv
+
+# 部署脚本
+deploy.sh
+
+# 日志
+*.log
+run.log*
+
+# uv
+uv.lock
+
+# 数据库 & 实例
+instance/
+
+
+# macOS
+.DS_Store

@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Machine 配置管理</title>
+    <link rel="stylesheet" href="/static/index/index.css">
+    <script src="/static/cfg/ace.js"></script>
+    <style>
+        /* ── cfg 页专属覆盖 ─────────────────────────────────────────────── */
+        main { align-items: stretch; }   /* 面板全宽，不居中 */
+
+        /* 页面标题（复用 index 风格） */
+        .cfg-title {
+            display: flex; align-items: baseline; gap: 8px;
+            margin-bottom: 20px;
+        }
+        .cfg-title .title-main { font-size: 52px; font-weight: 900; color: var(--accent); line-height: 1; }
+        .cfg-title .title-sub  { font-size: 22px; font-weight: 600; color: var(--text-secondary); }
+
+        /* 面板容器（同 panel-front 立体风格） */
+        .cfg-panel {
+            border-radius: 20px;
+            border-top:    1.5px solid rgba(255,255,255,1);
+            border-left:   1.5px solid rgba(255,255,255,0.9);
+            border-right:  1.5px solid rgba(200,100,130,0.20);
+            border-bottom: 2px   solid rgba(200,100,130,0.28);
+            box-shadow:
+                0  2px  4px 0 rgba(255,255,255,0.85) inset,
+                2px 0  4px 0 rgba(255,255,255,0.5) inset,
+                0 32px 64px -8px  rgba(251,114,153,0.20),
+                0 16px 32px -4px  rgba(0,0,0,0.13),
+                0  6px 12px  0    rgba(0,0,0,0.09),
+                0  2px  0    0    rgba(180,80,110,0.18),
+                0  1px  2px  0    rgba(0,0,0,0.06);
+            background: linear-gradient(160deg, #ffffff 0%, #fff5f8 100%);
+            padding: 28px 28px 32px;
+        }
+
+        /* 模式切换 */
+        .mode-switch {
+            display: flex; gap: 8px; margin-bottom: 24px;
+        }
+        .mode-switch button {
+            padding: 8px 20px; font-size: 14px; font-weight: 600;
+            background: rgba(251,114,153,0.08);
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            cursor: pointer; transition: all 0.18s ease; margin: 0;
+        }
+        .mode-switch button:hover { background: rgba(251,114,153,0.14); color: var(--accent); }
+        .mode-switch button.active {
+            background: var(--accent); color: #fff;
+            border-color: var(--accent);
+            box-shadow: 0 4px 14px rgba(251,114,153,0.35);
+        }
+
+        /* 可视化编辑器 grid 间距 */
+        #visual-editor { margin-bottom: 0; }
+
+        /* 代码编辑器容器 */
+        .editor-container { width: 100%; }
+        #editor {
+            width: 100%; height: 560px;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+        }
+
+        /* 表单组 */
+        .form-group { margin-bottom: 14px; }
+        .form-group label {
+            display: block; margin-bottom: 5px;
+            font-size: 13px; font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select {
+            width: 100%; padding: 9px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            font-family: inherit; font-size: 14px;
+            color: var(--text-primary); background: #fff;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(251,114,153,0.15);
+        }
+
+        /* 按钮 */
+        button {
+            padding: 10px 18px; font-size: 14px; font-family: inherit;
+            font-weight: 600; color: #fff;
+            background: var(--accent); border: none;
+            border-radius: var(--radius-sm); cursor: pointer;
+            transition: background 0.18s, transform 0.1s, box-shadow 0.18s;
+        }
+        button:hover {
+            background: var(--accent-dark);
+            box-shadow: 0 4px 14px rgba(251,114,153,0.35);
+            transform: translateY(-1px);
+        }
+        button:active { transform: translateY(0); }
+
+        /* 底部操作栏 */
+        .button-container {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            margin-top: 24px; padding-top: 20px;
+            border-top: 1px solid var(--card-border);
+        }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; box-shadow: 0 4px 14px rgba(239,68,68,0.35); }
+        .btn-secondary { background: rgba(251,114,153,0.12); color: var(--accent); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: rgba(251,114,153,0.22); box-shadow: none; }
+
+        /* Switch 开关 */
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: #d1d5db; transition: .35s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 16px; width: 16px; left: 4px; bottom: 4px;
+            background: #fff; transition: .35s; border-radius: 50%;
+        }
+        input:checked + .slider { background: var(--accent); }
+        input:focus  + .slider { box-shadow: 0 0 0 3px rgba(251,114,153,0.2); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* 密码修改弹窗 */
+        .pw-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        .pw-overlay.show { display: flex; }
+        .pw-dialog {
+            background: #fff; border-radius: 16px; padding: 32px 28px 28px;
+            width: 360px; max-width: 92vw;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.22);
+            animation: fadeUp 0.25s ease both;
+        }
+        .pw-dialog h3 { font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; }
+        .pw-dialog .form-group { margin-bottom: 14px; }
+        .pw-dialog .form-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 5px; }
+        .pw-dialog .form-group input {
+            width: 100%; padding: 9px 12px;
+            border: 1px solid var(--card-border); border-radius: var(--radius-sm);
+            font-size: 14px; font-family: inherit; color: var(--text-primary);
+            box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .pw-dialog .form-group input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(251,114,153,0.15); }
+        .pw-err { font-size: 12px; color: #ef4444; margin-bottom: 10px; min-height: 18px; }
+        .pw-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .pw-actions button { flex: 1; }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .cfg-title .title-main { font-size: 36px; }
+            .cfg-title .title-sub  { font-size: 17px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ── 侧边栏 ── -->
+    <aside>
+        <div class="avatar">
+            <img src="/static/img/user.jpg" alt="User Avatar">
+        </div>
+        <!-- 返回主页 -->
+        <svg class="icon" onclick="window.location='/'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="返回主页">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+    </aside>
+
+    <!-- ── 主内容区 ── -->
+    <main>
+        <h2 class="cfg-title">
+            <span class="title-main">Dream Machine</span>
+            <span class="title-sub"> 配置管理</span>
+        </h2>
+
+        <div class="cfg-panel">
+            <!-- 模式切换 -->
+            <div class="mode-switch">
+                <button onclick="switchMode('visual')" id="btn-visual" class="active">可视化配置</button>
+                <button onclick="switchMode('code')" id="btn-code">高级编辑</button>
+            </div>
+
+            <!-- 可视化编辑区 -->
+            <div id="visual-editor" class="grid">
+                <!-- 由 JS 动态生成 -->
+            </div>
+
+            <!-- 代码编辑区 -->
+            <div id="code-editor-container" class="editor-container" style="display: none;">
+                <div id="editor"></div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="button-container">
+                <button onclick="saveFile()">保存配置</button>
+                <button onclick="system_restart()">保存并重启服务</button>
+                <button onclick="loadFile()">重新加载</button>
+                <button onclick="change_password()" class="btn-secondary">修改登录密码</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 密码修改弹窗 -->
+    <div class="pw-overlay" id="pw-overlay" onclick="closePwDialog(event)">
+        <div class="pw-dialog">
+            <h3>修改登录密码</h3>
+            <div class="form-group">
+                <label>新密码</label>
+                <input type="password" id="pw-new" placeholder="请输入新密码" />
+            </div>
+            <div class="form-group">
+                <label>确认密码</label>
+                <input type="password" id="pw-confirm" placeholder="再次输入新密码" />
+            </div>
+            <div class="pw-err" id="pw-err"></div>
+            <div class="pw-actions">
+                <button onclick="submitPwChange()">确认修改</button>
+                <button class="btn-secondary" onclick="closePwDialog()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/chrome");
+        editor.session.setMode("ace/mode/ini");
+        
+        let currentMode = 'visual';
+        let configData = {};
+
+        // Initialize
+        window.onload = function() {
+            loadFile();
+        };
+
+        function switchMode(mode) {
+            if (mode === currentMode) return;
+            
+            if (mode === 'visual') {
+                // Sync Code -> Visual
+                const iniText = editor.getValue();
+                configData = parseINI(iniText);
+                renderVisualEditor(configData);
+                
+                document.getElementById('visual-editor').style.display = 'grid';
+                document.getElementById('code-editor-container').style.display = 'none';
+                document.getElementById('btn-visual').classList.add('active');
+                document.getElementById('btn-code').classList.remove('active');
+            } else {
+                // Sync Visual -> Code
+                updateConfigFromVisual(); // Update configData from inputs
+                const iniText = stringifyINI(configData);
+                editor.setValue(iniText, -1);
+                
+                document.getElementById('visual-editor').style.display = 'none';
+                document.getElementById('code-editor-container').style.display = 'block';
+                document.getElementById('btn-visual').classList.remove('active');
+                document.getElementById('btn-code').classList.add('active');
+            }
+            currentMode = mode;
+        }
+
+        function loadFile() {
+            fetch('/cfg_load')
+                .then(response => response.text())
+                .then(data => {
+                    editor.setValue(data, -1);
+                    // Initial render for visual mode
+                    configData = parseINI(data);
+                    renderVisualEditor(configData);
+                    
+                    // Default to visual mode
+                    if (currentMode === 'visual') {
+                        document.getElementById('visual-editor').style.display = 'grid';
+                        document.getElementById('code-editor-container').style.display = 'none';
+                    }
+                });
+        }
+
+        // INI Parser
+        function parseINI(data) {
+            const config = {};
+            let currentSection = 'GLOBAL';
+            const lines = data.split('\n');
+            
+            // Preserve section order
+            const sections = ['GLOBAL'];
+            
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith(';') || trimmed.startsWith('#')) continue;
+                
+                if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                    currentSection = trimmed.slice(1, -1);
+                    if (!config[currentSection]) {
+                        config[currentSection] = {};
+                        sections.push(currentSection);
+                    }
+                } else if (trimmed.includes('=')) {
+                    const parts = trimmed.split('=');
+                    const key = parts[0].trim();
+                    const value = parts.slice(1).join('=').trim();
+                    
+                    if (!config[currentSection]) {
+                        config[currentSection] = {};
+                        if (!sections.includes(currentSection)) sections.push(currentSection);
+                    }
+                    config[currentSection][key] = value;
+                }
+            }
+            
+            // Add sections property to preserve order
+            Object.defineProperty(config, '_sections', {
+                value: sections,
+                enumerable: false
+            });
+            
+            return config;
+        }
+
+        // INI Stringifier
+        function stringifyINI(config) {
+            let ini = '';
+            const sections = config._sections || Object.keys(config);
+            
+            for (const section of sections) {
+                if (section === 'GLOBAL') {
+                    // Write global keys first
+                    if (config[section]) {
+                        for (const key in config[section]) {
+                            ini += `${key} = ${config[section][key]}\n`;
+                        }
+                        if (Object.keys(config[section]).length > 0) ini += '\n';
+                    }
+                } else {
+                    if (config[section]) {
+                        ini += `[${section}]\n`;
+                        for (const key in config[section]) {
+                            ini += `${key} = ${config[section][key]}\n`;
+                        }
+                        ini += '\n';
+                    }
+                }
+            }
+            return ini;
+        }
+
+        const fieldConfig = {
+            'DEBUG': {
+                'enable': { label: '启用调试模式', type: 'boolean', help: '调试模式下不连接真实硬件，使用模拟数据' }
+            },
+            'SYS': {
+                'power_mode': { label: '电源数据', type: 'select', options: [{value: 'inside', text: '内建 (inside)'}, {value: 'external', text: '使用csps电源数据 (external)'}] },
+                'mcu_serial': { label: 'mcu串口', type: 'text' },
+                'power_serial': { label: 'csps电源串口', type: 'text' },
+                'lighting_io': { label: '照明io', type: 'select', source: 'io_list' },
+                'standard_mode': { label: '标准模式风扇配置', type: 'text' },
+                'full_mode': { label: '全速风扇配置', type: 'text' },
+                'full_mode_time': { label: '全速定时', type: 'time_range' },
+                'remaining_filter_element': { label: '剩余滤芯小时数', type: 'number' },
+                'filter_element_max': { label: '滤芯理论工作时长', type: 'number' }
+            },
+            'NETWORK': {
+                'car_name': { label: '控制器网卡', type: 'text' },
+                'gateway': { label: '本地路由', type: 'text' },
+                'wan': { label: '国内网络', type: 'text' },
+                'reverse_proxy': { label: '反向代理服务', type: 'text' },
+                'god_use_vpn': { label: '国际互联网', type: 'text' }
+            },
+            'UPS': {
+                'mode': { label: '模式', type: 'select', options: [{value: 'OFF', text: '关 (OFF)'}, {value: 'ON', text: '开 (ON)'}, {value: 'NUT', text: '网络模式 (NUT)'}] },
+                'host': { label: 'UPS主机ip', type: 'text' }
+            },
+            'ENV_SAFETY': {
+                'temp_limit_enable':             { label: '启用温度超限保护', type: 'boolean' },
+                'limit':                         { label: '温度阈值 (°C)', type: 'number' },
+                'io0_action': { label: 'IO0 超温动作 (true=开/false=关)', type: 'select', options: [{value:'true',text:'开启 (true)'},{value:'false',text:'关闭 (false)'}] },
+                'io1_action': { label: 'IO1 超温动作', type: 'select', options: [{value:'true',text:'开启 (true)'},{value:'false',text:'关闭 (false)'}] },
+                'io2_action': { label: 'IO2 超温动作', type: 'select', options: [{value:'true',text:'开启 (true)'},{value:'false',text:'关闭 (false)'}] },
+                'io3_action': { label: 'IO3 超温动作', type: 'select', options: [{value:'true',text:'开启 (true)'},{value:'false',text:'关闭 (false)'}] },
+                'io4_action': { label: 'IO4 超温动作', type: 'select', options: [{value:'true',text:'开启 (true)'},{value:'false',text:'关闭 (false)'}] },
+                'io5_action': { label: 'IO5 超温动作', type: 'select', options: [{value:'true',text:'开启 (true)'},{value:'false',text:'关闭 (false)'}] },
+                'io6_action': { label: 'IO6 超温动作', type: 'select', options: [{value:'true',text:'开启 (true)'},{value:'false',text:'关闭 (false)'}] },
+                'filter_element_alert_enable':   { label: '滤芯耗尽推送提醒', type: 'boolean' }
+            },
+            'BARK': {
+                'enable':        { label: '启用 Bark 推送', type: 'boolean' },
+                'important_only':{ label: '仅推送重要通知', type: 'boolean' },
+                'server':        { label: 'Bark 服务器地址', type: 'text' },
+                'key':           { label: 'Bark 设备密钥', type: 'text' },
+                'icon':          { label: '通知图标 URL', type: 'text' }
+            },
+            'IO_TEMPLATE': {
+                'name': { label: '接口名称', type: 'text' },
+                'lock': { label: '是否锁定', type: 'boolean' },
+                'default': { label: '默认上电状态', type: 'boolean' }
+            }
+        };
+
+        function renderVisualEditor(config) {
+            const container = document.getElementById('visual-editor');
+            container.innerHTML = '';
+            
+            const sections = config._sections || Object.keys(config);
+            
+            // Identify server sections to skip in normal rendering
+            const serverListSection = config['SERVER_LIST'];
+            const serverSections = new Set();
+            if (serverListSection) {
+                Object.values(serverListSection).forEach(val => serverSections.add(val));
+            }
+            
+            sections.forEach(section => {
+                if (section === 'GLOBAL' && (!config[section] || Object.keys(config[section]).length === 0)) return;
+                
+                // Skip SERVER_LIST and individual server sections
+                if (section === 'SERVER_LIST' || serverSections.has(section)) return;
+                
+                renderSection(container, section, config[section], config);
+            });
+
+            // Render Server Manager
+            renderServerManager(container, config);
+        }
+
+        function renderSection(container, sectionName, sectionData, fullConfig) {
+            const card = document.createElement('div');
+            card.className = 'card config-section';
+            
+            const title = document.createElement('h3');
+            title.textContent = sectionName === 'GLOBAL' ? '全局配置' : sectionName;
+            card.appendChild(title);
+
+            // Determine schema
+            let schema = fieldConfig[sectionName];
+            if (!schema && sectionName.startsWith('IO')) {
+                schema = fieldConfig['IO_TEMPLATE'];
+            }
+
+            for (const key in sectionData) {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+                
+                let labelText = key;
+                let inputType = 'text';
+                let options = [];
+                let source = null;
+
+                // Check for exact key match or lowercase match
+                if (schema) {
+                    if (schema[key]) {
+                        labelText = schema[key].label;
+                        inputType = schema[key].type;
+                        options = schema[key].options;
+                        source = schema[key].source;
+                    } else if (schema[key.toLowerCase()]) {
+                        const schemaKey = key.toLowerCase();
+                        labelText = schema[schemaKey].label;
+                        inputType = schema[schemaKey].type;
+                        options = schema[schemaKey].options;
+                        source = schema[schemaKey].source;
+                    }
+                }
+
+                const label = document.createElement('label');
+                label.textContent = `${labelText} (${key})`;
+                formGroup.appendChild(label);
+
+                let inputElement;
+
+                if (inputType === 'select') {
+                    inputElement = document.createElement('select');
+                    inputElement.dataset.section = sectionName;
+                    inputElement.dataset.key = key;
+                    inputElement.style.width = '100%';
+                    inputElement.style.padding = '8px 12px';
+                    inputElement.style.border = '1px solid #fbcfe8';
+                    inputElement.style.borderRadius = '6px';
+                    
+                    if (source === 'io_list') {
+                        const ioSections = (fullConfig._sections || Object.keys(fullConfig)).filter(s => s.startsWith('IO'));
+                        ioSections.forEach(ioSec => {
+                            const opt = document.createElement('option');
+                            opt.value = ioSec;
+                            opt.textContent = ioSec + (fullConfig[ioSec].name ? ` - ${fullConfig[ioSec].name}` : '');
+                            inputElement.appendChild(opt);
+                        });
+                    } else if (options) {
+                        options.forEach(opt => {
+                            const option = document.createElement('option');
+                            option.value = opt.value;
+                            option.textContent = opt.text;
+                            inputElement.appendChild(option);
+                        });
+                    }
+                    inputElement.value = sectionData[key];
+
+                } else if (inputType === 'boolean') {
+                    const wrapper = document.createElement('div');
+                    wrapper.style.display = 'flex';
+                    wrapper.style.alignItems = 'center';
+                    
+                    // Switch container
+                    const switchLabel = document.createElement('label');
+                    switchLabel.className = 'switch';
+                    switchLabel.style.marginRight = '10px';
+                    switchLabel.style.marginBottom = '0'; // Override default label margin
+
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.checked = (sectionData[key] === 'true');
+                    input.dataset.section = sectionName;
+                    input.dataset.key = key;
+                    input.dataset.type = 'boolean';
+                    
+                    const slider = document.createElement('span');
+                    slider.className = 'slider round';
+                    
+                    switchLabel.appendChild(input);
+                    switchLabel.appendChild(slider);
+                    
+                    const statusSpan = document.createElement('span');
+                    statusSpan.textContent = input.checked ? '开启' : '关闭';
+                    statusSpan.style.fontSize = '14px';
+                    statusSpan.style.color = '#666';
+                    
+                    input.onchange = () => {
+                        statusSpan.textContent = input.checked ? '开启' : '关闭';
+                    };
+                    
+                    wrapper.appendChild(switchLabel);
+                    wrapper.appendChild(statusSpan);
+                    inputElement = wrapper;
+
+                } else if (inputType === 'time_range') {
+                    const wrapper = document.createElement('div');
+                    wrapper.style.display = 'flex';
+                    wrapper.style.alignItems = 'center';
+                    wrapper.style.gap = '10px';
+
+                    const [startH, endH] = (sectionData[key] || '0:0').split(':');
+
+                    const createHourSelect = (val) => {
+                        const sel = document.createElement('select');
+                        sel.style.padding = '5px';
+                        sel.style.border = '1px solid #fbcfe8';
+                        sel.style.borderRadius = '4px';
+                        for(let i=0; i<24; i++) {
+                            const opt = document.createElement('option');
+                            opt.value = i;
+                            opt.textContent = i + '点';
+                            sel.appendChild(opt);
+                        }
+                        sel.value = parseInt(val) || 0;
+                        return sel;
+                    };
+
+                    const startSel = createHourSelect(startH);
+                    const endSel = createHourSelect(endH);
+                    
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.dataset.section = sectionName;
+                    hiddenInput.dataset.key = key;
+                    hiddenInput.value = sectionData[key];
+                    
+                    const updateHidden = () => {
+                        hiddenInput.value = `${startSel.value}:${endSel.value}`;
+                    };
+                    
+                    startSel.onchange = updateHidden;
+                    endSel.onchange = updateHidden;
+
+                    wrapper.appendChild(document.createTextNode('开始:'));
+                    wrapper.appendChild(startSel);
+                    wrapper.appendChild(document.createTextNode('结束:'));
+                    wrapper.appendChild(endSel);
+                    wrapper.appendChild(hiddenInput);
+                    
+                    inputElement = wrapper;
+
+                } else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = inputType === 'number' ? 'number' : 'text';
+                    inputElement.value = sectionData[key];
+                    inputElement.dataset.section = sectionName;
+                    inputElement.dataset.key = key;
+                }
+
+                formGroup.appendChild(inputElement);
+                card.appendChild(formGroup);
+            }
+            
+            container.appendChild(card);
+        }
+
+        function renderServerManager(container, config) {
+            const card = document.createElement('div');
+            card.className = 'card config-section';
+            card.id = 'server-manager-card';
+            // Make server card span full width if possible or just fit in grid
+            // card.style.gridColumn = '1 / -1'; 
+            
+            const header = document.createElement('div');
+            header.style.display = 'flex';
+            header.style.justifyContent = 'space-between';
+            header.style.alignItems = 'center';
+            header.style.borderBottom = '2px solid #fbcfe8';
+            header.style.marginBottom = '15px';
+            header.style.paddingBottom = '10px';
+            
+            const title = document.createElement('h3');
+            title.textContent = '服务器列表管理';
+            title.style.borderBottom = 'none';
+            title.style.margin = '0';
+            title.style.padding = '0';
+            
+            const addButton = document.createElement('button');
+            addButton.textContent = '+ 添加服务器';
+            addButton.onclick = () => addServerEntry(serversContainer);
+            addButton.style.padding = '5px 10px';
+            addButton.style.fontSize = '14px';
+            addButton.style.margin = '0';
+
+            header.appendChild(title);
+            header.appendChild(addButton);
+            card.appendChild(header);
+
+            const serversContainer = document.createElement('div');
+            serversContainer.id = 'servers-container';
+            
+            const serverList = config['SERVER_LIST'] || {};
+            // Sort keys list0, list1... to ensure order
+            const listKeys = Object.keys(serverList).sort((a, b) => {
+                const numA = parseInt(a.replace('list', '')) || 0;
+                const numB = parseInt(b.replace('list', '')) || 0;
+                return numA - numB;
+            });
+
+            listKeys.forEach(listKey => {
+                const serverSectionName = serverList[listKey];
+                const serverData = config[serverSectionName] || {};
+                addServerEntry(serversContainer, serverSectionName, serverData);
+            });
+
+            card.appendChild(serversContainer);
+            container.appendChild(card);
+        }
+
+        function addServerEntry(container, sectionName, data = {name: '', host: '', key: ''}) {
+            const entry = document.createElement('div');
+            entry.className = 'server-entry';
+            entry.style.border = '1px solid #fbcfe8';
+            entry.style.borderRadius = '6px';
+            entry.style.padding = '10px';
+            entry.style.marginBottom = '10px';
+            entry.style.backgroundColor = '#fff';
+            entry.dataset.type = 'server-entry';
+
+            // Hidden input to store original section name if editing
+            if (sectionName) {
+                entry.dataset.originalSection = sectionName;
+            }
+
+            const grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = '1fr 1fr 1fr auto';
+            grid.style.gap = '10px';
+            grid.style.alignItems = 'end';
+
+            // Name
+            const nameGroup = createInputGroup('名称', data.name || '', 'name');
+            // Host
+            const hostGroup = createInputGroup('地址 (Host)', data.host || '', 'host');
+            // Key
+            const keyGroup = createInputGroup('密钥 (Key)', data.key || '', 'key');
+
+            const delBtn = document.createElement('button');
+            delBtn.textContent = '删除';
+            delBtn.style.backgroundColor = '#ef4444';
+            delBtn.style.margin = '0';
+            delBtn.style.height = '36px';
+            delBtn.style.padding = '0 15px';
+            delBtn.onclick = () => entry.remove();
+
+            grid.appendChild(nameGroup);
+            grid.appendChild(hostGroup);
+            grid.appendChild(keyGroup);
+            grid.appendChild(delBtn);
+
+            entry.appendChild(grid);
+            container.appendChild(entry);
+        }
+
+        function createInputGroup(labelText, value, key) {
+            const div = document.createElement('div');
+            const label = document.createElement('label');
+            label.textContent = labelText;
+            label.style.display = 'block';
+            label.style.fontSize = '12px';
+            label.style.marginBottom = '4px';
+            label.style.color = '#666';
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value;
+            input.dataset.serverKey = key; // name, host, or key
+            input.style.width = '100%';
+            input.style.padding = '8px';
+            input.style.border = '1px solid #fbcfe8';
+            input.style.borderRadius = '4px';
+            input.style.boxSizing = 'border-box';
+
+            div.appendChild(label);
+            div.appendChild(input);
+            return div;
+        }
+
+        function updateConfigFromVisual() {
+            // 1. Update standard inputs
+            const inputs = document.querySelectorAll('#visual-editor input:not([data-server-key]), #visual-editor select:not([data-server-key])');
+            inputs.forEach(input => {
+                if (!input.dataset.section) return;
+
+                const section = input.dataset.section;
+                const key = input.dataset.key;
+                
+                if (configData[section]) {
+                    if (input.dataset.type === 'boolean') {
+                        configData[section][key] = input.checked ? 'true' : 'false';
+                    } else {
+                        configData[section][key] = input.value;
+                    }
+                }
+            });
+
+            // 2. Rebuild Server Config
+            // Clear existing server sections from configData
+            const oldServerList = configData['SERVER_LIST'] || {};
+            
+            // Remove old server sections from _sections and configData
+            Object.values(oldServerList).forEach(sec => {
+                delete configData[sec];
+                const idx = configData._sections.indexOf(sec);
+                if (idx > -1) configData._sections.splice(idx, 1);
+            });
+            
+            // Reset SERVER_LIST
+            configData['SERVER_LIST'] = {};
+            if (!configData._sections.includes('SERVER_LIST')) {
+                configData._sections.push('SERVER_LIST');
+            }
+            
+            const serverEntries = document.querySelectorAll('.server-entry');
+            let index = 0;
+            
+            serverEntries.forEach(entry => {
+                const name = entry.querySelector('input[data-server-key="name"]').value;
+                const host = entry.querySelector('input[data-server-key="host"]').value;
+                const key = entry.querySelector('input[data-server-key="key"]').value;
+                
+                // Generate new section name
+                const sectionName = `SERVER${index}`;
+                const listKey = `list${index}`;
+                
+                // Update SERVER_LIST
+                configData['SERVER_LIST'][listKey] = sectionName;
+                
+                // Create SERVERx section
+                configData[sectionName] = {
+                    name: name,
+                    host: host,
+                    key: key
+                };
+                
+                // Add to _sections
+                configData._sections.push(sectionName);
+                
+                index++;
+            });
+        }
+
+        async function saveFile() {
+            // Ensure we have the latest data
+            if (currentMode === 'visual') {
+                updateConfigFromVisual();
+                const iniText = stringifyINI(configData);
+                editor.setValue(iniText, -1);
+            }
+            
+            const content = editor.getValue();
+            
+            try {
+                const response = await fetch('/cfg_save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: content }),
+                });
+                
+                let data = {};
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    data = await response.json();
+                } else {
+                    // Fallback for non-JSON errors
+                    const text = await response.text();
+                    data = { message: text };
+                }
+
+                if (response.ok) {
+                    if (data.status === 'success') {
+                        alert('保存成功');
+                    }
+                    return true;
+                } else {
+                    alert('保存失败: ' + (data.message || '未知错误'));
+                    return false;
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('保存请求失败: ' + error.message);
+                return false;
+            }
+        }
+
+        function change_password() {
+            document.getElementById('pw-new').value = '';
+            document.getElementById('pw-confirm').value = '';
+            document.getElementById('pw-err').textContent = '';
+            document.getElementById('pw-overlay').classList.add('show');
+            setTimeout(() => document.getElementById('pw-new').focus(), 50);
+        }
+
+        function closePwDialog(e) {
+            if (!e || e.target === document.getElementById('pw-overlay')) {
+                document.getElementById('pw-overlay').classList.remove('show');
+            }
+        }
+
+        async function submitPwChange() {
+            const np = document.getElementById('pw-new').value;
+            const cp = document.getElementById('pw-confirm').value;
+            const errEl = document.getElementById('pw-err');
+            if (!np) { errEl.textContent = '密码不能为空'; return; }
+            if (np !== cp) { errEl.textContent = '两次密码不一致'; return; }
+            errEl.textContent = '';
+            const fd = new FormData();
+            fd.append('new_password', np);
+            try {
+                const res = await fetch('/change_password', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.getElementById('pw-overlay').classList.remove('show');
+                    alert('密码修改成功');
+                } else {
+                    errEl.textContent = data.message || '修改失败';
+                }
+            } catch (e) {
+                errEl.textContent = '请求失败，请重试';
+            }
+        }
+
+        async function system_restart() {
+            if (!confirm("确定要保存配置并重启系统吗？")) return;
+            
+            const saved = await saveFile();
+            if (saved) {
+                try {
+                    const response = await fetch('/system_restart');
+                    if (response.ok) {
+                        alert("系统正在重启，请稍后刷新页面。");
+                    } else {
+                        alert("重启命令发送失败。");
+                    }
+                } catch (error) {
+                    console.error('Restart error:', error);
+                    alert("重启请求失败。");
+                }
+            }
+        }
+        
+        // Compatibility
+        function rest() {
+            loadFile();
+        }
+    </script>
+</body>
+</html>

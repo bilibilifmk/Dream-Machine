@@ -1,0 +1,113 @@
+.io-grid-container {
+ 
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-template-rows: repeat(8, auto);
+    gap: 5px;
+    margin: 0 auto;
+    justify-items: stretch;
+    padding: 0 20px; /* 增加左右的内边距 */
+    grid-column-gap: 20px; /* 设置列之间的间距 */
+
+    }
+    
+.io-spacing{
+    margin-bottom: 20px; /* 设置每个 div 之间的垂直间距为 20px */
+    margin-right: 10px; /* 设置每个 div 之间的水平间距为 10px */
+}
+
+
+/* 容器的两列网格布局 */
+.io-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 两列等宽布局 */
+    gap: 20px; /* 网格间距 */
+    padding: 20px;
+    /* background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+  }
+  
+  /* 单个 IO 项目 */
+  .io-item {
+    display: flex;
+    justify-content: space-between; /* 名称和开关两端对齐 */
+    align-items: center; /* 垂直居中 */
+    padding: 10px 15px;
+    /* background-color: #f9f9f9; */
+    border-radius: 8px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+    font-size: 24px;
+    transition: background 0.3s;
+  }
+  
+  /* 鼠标悬停时的效果 */
+  .io-item:hover {
+    background-color: #eac7c7;
+  }
+  
+  /* IO 名称 */
+  .io-name {
+    font-weight: bold;
+    color: #f3e4e4;
+    font-size: 24px; /* 调整字体大小 */
+    margin-right: 10px; /* 增加名称与开关的间距 */
+  }
+  
+  /* 开关外壳 */
+  .switch_info {
+    position: relative;
+    display: inline-block;
+    width: 70px; /* 调整开关宽度 */
+    height: 40px; /* 调整开关高度 */
+  }
+  
+  /* 隐藏原始复选框 */
+  .switch_info input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* 滑块背景 */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc; /* 默认关闭状态颜色 */
+    transition: 0.4s;
+    border-radius: 30px; /* 圆角背景 */
+  }
+  
+  /* 滑块按钮 */
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 22px; /* 调整按钮高度 */
+    width: 22px; /* 调整按钮宽度 */
+
+    background-color: white; /* 按钮颜色 */
+    transition: 0.4s;
+    border-radius: 50%; /* 圆形按钮 */
+  }
+  
+  /* 开启状态 */
+  .switch_info input:checked + .slider {
+    background-color: #4caf50; /* 开启状态背景色 */
+  }
+  
+  .switch_info input:checked + .slider:before {
+    transform: translateX(30px); /* 调整滑动距离 */
+  }
+  
+  /* 禁用状态 */
+  .switch_info input:disabled + .slider {
+    background-color: #d3d3d3; /* 禁用背景色 */
+  }
+  
+  .switch_info input:disabled + .slider:before {
+    background-color: #b0b0b0; /* 禁用按钮颜色 */
+  }
