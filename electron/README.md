@@ -32,15 +32,6 @@ npm start
 
 ### 安装 Node.js（ARM64）
 
-```bash
-# 方式一：使用 NodeSource 源（推荐）
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-apt-get install -y nodejs
-
-# 方式二：手动下载 ARM64 二进制
-wget https://nodejs.org/dist/v18.20.4/node-v18.20.4-linux-arm64.tar.xz
-tar -xf node-v18.20.4-linux-arm64.tar.xz -C /usr/local --strip-components=1
-```
 
 ### 安装 X Server 与 xinit
 
@@ -66,16 +57,6 @@ Xorg 默认拒绝 root 启动，需修改配置：
 # 编辑 /etc/X11/Xwrapper.config，若不存在则创建
 echo "allowed_users = anybody" > /etc/X11/Xwrapper.config
 echo "needs_root_rights = yes" >> /etc/X11/Xwrapper.config
-```
-
-### 安装 sshpass（用于本地 deploy.sh 部署）
-
-```bash
-# macOS（开发机）
-brew install sshpass
-
-# Linux
-apt-get install -y sshpass
 ```
 
 ---
