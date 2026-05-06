@@ -11,15 +11,20 @@ Dream Machine 是一套完整的开源机柜项目，涵盖机柜结构设计、
 - **软件设计** — Flask 后端服务、串口通信、Web 管理界面 基于 Electron 的 ARM64 本地触摸屏面板
 - **屏幕设计** —  使用成品屏幕制作面板 
 
+# 整体效果图
+![](./img/dm.PNG)
 ## 序
 
 项目本来想完全依赖 Electron 来构建，但随着开发深入，有些问题解决起来愈发困难，Electron 成了废案。但不想重构，就造成了 UI 为 Electron 大部分功能实现在 Python 上实现的现状。
 ---
 ## 关项目
-* 机柜STEP等设计 ： 稍后完善
+* 机柜STEP等设计 ：
+    * [Dream Machine STEP](https://makerworld.com/zh/models/2030689-dream_machine-open-source-cabinet-dust-free-and-ma)
 * 控制器PCB/屏幕面板 ： 稍后完善
-* CSPS电源控制器： [CSPS_TO_USB_AND_WIFI](https://github.com/bilibilifmk/CSPS_TO_USB_AND_WIFI)
-
+* CSPS电源控制器： 
+    * [CSPS_TO_USB_AND_WIFI](https://github.com/bilibilifmk/CSPS_TO_USB_AND_WIFI)
+    * [CSPS PCB工程](https://oshwhub.com/hbk444/csps-dian-yuan-qu-dong-ban-_2024-10-28_16-25-34)
+     * [CSPS 打印工程](https://makerworld.com/zh/models/757748-csps_to_usb_and_wifi)
 ## 系统架构
 
 ```mermaid
