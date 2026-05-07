@@ -8,8 +8,9 @@ Dream Machine 是一套完整的开源机柜项目，涵盖机柜结构设计、
 
 - **机柜设计** — 机柜结构 STEP 文件
 - **控制器硬件设计** — 控制器 PCB 原理图与硬件资料
-- **软件设计** — Flask 后端服务、串口通信、Web 管理界面 基于 Electron 的 ARM64 本地触摸屏面板
-- **屏幕设计** —  使用成品屏幕制作面板 
+- **MCU 固件** — 基于 Arduino 的机柜控制器固件（IO / 风扇 / 温湿度 / 电压电流采集）
+- **软件设计** — Flask 后端服务、串口通信、Web 管理界面，基于 Electron 的 ARM64 本地触摸屏面板
+- **屏幕设计** — 使用成品屏幕制作面板
 
 # 整体效果图
 ![](./img/dm.PNG)
@@ -20,7 +21,8 @@ Dream Machine 是一套完整的开源机柜项目，涵盖机柜结构设计、
 ## 关项目
 * 机柜STEP等设计 ：
     * [Dream Machine STEP](https://makerworld.com/zh/models/2030689-dream_machine-open-source-cabinet-dust-free-and-ma)
-* 控制器PCB/屏幕面板 ： 稍后完善
+* 控制器PCB/屏幕面板 ： 
+    *  [LCEDA](https://oshwhub.com/hbk444/ji-gui-zhu-ji)   
 * CSPS电源控制器： 
     * [CSPS_TO_USB_AND_WIFI](https://github.com/bilibilifmk/CSPS_TO_USB_AND_WIFI)
     * [CSPS PCB工程](https://oshwhub.com/hbk444/csps-dian-yuan-qu-dong-ban-_2024-10-28_16-25-34)
@@ -53,6 +55,7 @@ flowchart TD
 |------|------|------|
 | `server/` | Flask + SocketIO 后端，提供 Web 界面、IO/风扇/UPS 控制、串口通信 | [server/README.md](server/README.md) |
 | `electron/` | Electron 本地触摸屏面板，运行于 ARM64 设备 | [electron/README.md](electron/README.md) |
+| `electron/MCU/SOC_MCU/` | Arduino Nano 控制器固件，IO / 风扇 / 温湿度 / 电压电流采集，串口与上位机通信 | [electron/MCU/SOC_MCU/README.md](electron/MCU/SOC_MCU/README.md) |
 | `server_state_app/` | 轻量级 CPU 负载监控 API，供主控后端查询各服务器状态 | [server_state_app/README.md](server_state_app/README.md) |
 
 ---
@@ -181,7 +184,12 @@ Dream_Machine/
 │   ├── index.html            # 窗口入口
 │   ├── index/                # 面板前端
 │   ├── Dream_Machine_app.service
-│   └── package.json
+│   ├── package.json
+│   └── MCU/
+│       └── SOC_MCU/          # Arduino Nano 控制器固件
+│           ├── SOC_MCU.ino   # 主程序
+│           ├── DHT22.h/cpp   # 温湿度驱动
+│           └── FanMonitor.h/cpp  # 风扇转速驱动
 │
 ├── server_state_app/         # 负载监控 API
 │   ├── server_state_app.py
