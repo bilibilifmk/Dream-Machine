@@ -18,7 +18,7 @@ Dream Machine 是一套完整的开源机柜项目，涵盖机柜结构设计、
 
 项目本来想完全依赖 Electron 来构建，但随着开发深入，有些问题解决起来愈发困难，Electron 成了废案。但不想重构，就造成了 UI 为 Electron 大部分功能实现在 Python 上实现的现状。
 ---
-## 关项目
+## 相关项目
 * 机柜STEP等设计 ：
     * [Dream Machine STEP](https://makerworld.com/zh/models/2030689-dream_machine-open-source-cabinet-dust-free-and-ma)
 * 控制器PCB/屏幕面板 ： 
@@ -55,7 +55,7 @@ flowchart TD
 |------|------|------|
 | `server/` | Flask + SocketIO 后端，提供 Web 界面、IO/风扇/UPS 控制、串口通信 | [server/README.md](server/README.md) |
 | `electron/` | Electron 本地触摸屏面板，运行于 ARM64 设备 | [electron/README.md](electron/README.md) |
-| `electron/MCU/SOC_MCU/` | Arduino Nano 控制器固件，IO / 风扇 / 温湿度 / 电压电流采集，串口与上位机通信 | [electron/MCU/SOC_MCU/README.md](electron/MCU/SOC_MCU/README.md) |
+| `MCU/SOC_MCU/` | Arduino Nano 控制器固件，IO / 风扇 / 温湿度 / 电压电流采集，串口与上位机通信 | [MCU/README.md](MCU/README.md) |
 | `server_state_app/` | 轻量级 CPU 负载监控 API，供主控后端查询各服务器状态 | [server_state_app/README.md](server_state_app/README.md) |
 
 ---
@@ -184,12 +184,13 @@ Dream_Machine/
 │   ├── index.html            # 窗口入口
 │   ├── index/                # 面板前端
 │   ├── Dream_Machine_app.service
-│   ├── package.json
-│   └── MCU/
-│       └── SOC_MCU/          # Arduino Nano 控制器固件
-│           ├── SOC_MCU.ino   # 主程序
-│           ├── DHT22.h/cpp   # 温湿度驱动
-│           └── FanMonitor.h/cpp  # 风扇转速驱动
+│   └── package.json
+│
+├── MCU/                      # 控制器固件
+│   └── SOC_MCU/              # Arduino  控制器固件
+│       ├── SOC_MCU.ino       # 主程序
+│       ├── DHT22.h/cpp       # 温湿度驱动
+│       └── FanMonitor.h/cpp  # 风扇转速驱动
 │
 ├── server_state_app/         # 负载监控 API
 │   ├── server_state_app.py
